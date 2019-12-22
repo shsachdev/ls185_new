@@ -33,6 +33,8 @@ def display_help
   HELP
 end
 
+# adding a change
+
 def add_expenses(amount, memo)
   date = Date.today
   sql = "INSERT INTO expenses (amount, memo, created_on) VALUES (#{amount}, '#{memo}', '#{date}')"
