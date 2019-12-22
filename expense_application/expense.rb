@@ -4,6 +4,7 @@ require 'pg'
 
 CONNECTION = PG.connect(dbname: "expenses")
 
+# code structure needs to be changed
 
 def list_expenses
   connection = PG.connect(dbname: "expenses")
