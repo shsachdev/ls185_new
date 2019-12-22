@@ -40,6 +40,15 @@ class ExpenseData
     end
   end
 
+  def clear_expenses
+    puts "This will remove all expenses. Are you sure? (y/n)"
+    answer = gets.chomp
+    if answer == "y"
+      @connection.exec("DELETE FROM expenses")
+      puts "All expenses have been deleted."
+    end
+  end
+
   private
 
   def display_expenses(expenses)
@@ -84,6 +93,8 @@ class CLI
     when "delete"
       id = arguments[0]
       @application.delete_expenses(id)
+    when "clear"
+      @application.clear_expenses
     else
       display_help
     end
