@@ -14,9 +14,21 @@ class ExpenseData
     @connection.exec_params(sql, [amount, memo, date])
   end
 
+  def search_expenses(memo)
+    sql = "SELECT * FROM expenses WHERE memo ILIKE $1"
+    result = @connection.exec_params(sql, ["%#{memo}%"])
+    display_expenses(result)
+  end
+
   def list_expenses
     result = @connection.exec("SELECT * FROM expenses ORDER BY created_on ASC")
-    result.each do |tuple|
+    display_expenses(result)
+  end
+
+  private
+
+  def display_expenses(expenses)
+    expenses.each do |tuple|
       columns = [tuple["id"].rjust(3), tuple["created_on"].rjust(10),
       tuple["amount"].rjust(12),
       tuple["memo"]]
@@ -37,10 +49,14 @@ class CLI
     when "list"
       @application.list_expenses
     when "add"
-      amount = ARGV[1]
-      memo = ARGV[2]
+      amount = arguments[0]
+      memo = arguments[1]
       abort "You must provide an amount and memo." unless amount && memo
       @application.add_expenses(amount, memo)
+    when "search"
+      memo = arguments[0]
+      abort "You must provide a memo." unless memo
+      @application.search_expenses(memo)
     else
       display_help
     end
