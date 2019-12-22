@@ -25,6 +25,21 @@ class ExpenseData
     display_expenses(result)
   end
 
+  def delete_expenses(id)
+    sql = "SELECT * FROM expenses"
+    result = @connection.exec(sql)
+    if id_exists(result, id)
+      delete_result = @connection.exec("SELECT * FROM expenses WHERE id = #{id}")
+      puts "The following expense has been deleted:"
+      display_expenses(delete_result)
+      sql = "DELETE FROM expenses WHERE id = $1"
+      @connection.exec_params(sql, [id])
+      # delete_message()
+    else
+      puts "There is no expense with the id #{id}"
+    end
+  end
+
   private
 
   def display_expenses(expenses)
@@ -35,6 +50,15 @@ class ExpenseData
 
       puts columns.join(" | ")
     end
+  end
+
+  def id_exists(expenses, id)
+    id_list = []
+    expenses.each do |tuple|
+      id_list << tuple["id"]
+    end
+    return false unless id_list.include?(id.to_s)
+    true
   end
 end
 
@@ -57,6 +81,9 @@ class CLI
       memo = arguments[0]
       abort "You must provide a memo." unless memo
       @application.search_expenses(memo)
+    when "delete"
+      id = arguments[0]
+      @application.delete_expenses(id)
     else
       display_help
     end
