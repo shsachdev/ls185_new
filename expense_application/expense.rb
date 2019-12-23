@@ -93,7 +93,7 @@ class ExpenseData
     puts "Total: #{total_values.sum}"
   end
 
-  def id_exists(expenses, id)
+  def id_exists(expenses, id) # check if input id number actually exists or not 
     id_list = []
     expenses.each do |tuple|
       id_list << tuple["id"]
