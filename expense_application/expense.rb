@@ -6,6 +6,24 @@ require 'pg'
 class ExpenseData
   def initialize
     @connection = PG.connect(dbname: "expenses")
+    setup_schema
+  end
+
+  def setup_schema
+    sql = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'expenses';"
+    result = @connection.exec(sql)
+    if result.values[0][0].to_i == 0
+      create_table_sql = "CREATE TABLE expenses (
+        id serial PRIMARY KEY,
+        amount numeric(6,2) NOT NULL,
+        memo text NOT NULL,
+        created_on date NOT NULL
+      );
+
+      ALTER TABLE expenses ADD CONSTRAINT positive_amount CHECK (amount >= 0.01);"
+
+      @connection.exec(create_table_sql)
+    end
   end
 
   def add_expenses(amount, memo)
@@ -17,12 +35,16 @@ class ExpenseData
   def search_expenses(memo)
     sql = "SELECT * FROM expenses WHERE memo ILIKE $1"
     result = @connection.exec_params(sql, ["%#{memo}%"])
-    display_expenses(result)
+    display_and_total_expenses(result)
   end
 
   def list_expenses
     result = @connection.exec("SELECT * FROM expenses ORDER BY created_on ASC")
-    display_expenses(result)
+    if result.values.size == 0
+      puts "There are no expenses."
+    else
+      display_and_total_expenses(result)
+    end
   end
 
   def delete_expenses(id)
@@ -59,6 +81,16 @@ class ExpenseData
 
       puts columns.join(" | ")
     end
+  end
+
+  def display_and_total_expenses(expenses)
+    display_expenses(expenses)
+    total_values = []
+    expenses.each do |tuple|
+      total_values << tuple["amount"].to_i
+    end
+    puts "--------------------------------------------------"
+    puts "Total: #{total_values.sum}"
   end
 
   def id_exists(expenses, id)
